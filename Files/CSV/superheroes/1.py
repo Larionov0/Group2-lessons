@@ -5,6 +5,10 @@ FILENAME = 'superheroes.csv'
 
 
 def get_superheroes_list_from_file(filename=FILENAME):
+    """
+    :param filename:
+    :return: list[dict]
+    """
     superheroes = []
 
     with open(filename, 'rt', encoding='utf-8') as file:
@@ -24,5 +28,29 @@ def get_superheroes_list_from_file(filename=FILENAME):
     return superheroes
 
 
-superheroes = get_superheroes_list_from_file()
-print(dumps(superheroes, indent=4, ensure_ascii=False))
+def find_most_effective_superhero(superheroes):
+    """
+    :param superheroes:
+    :return: list[dict] - супергерої, які піймали найбільше злочинців
+    """
+    max_count = 0
+    effective_heroes = []
+    for hero_dict in superheroes:
+        if hero_dict['criminals_count'] > max_count:
+            max_count = hero_dict['criminals_count']
+            effective_heroes.clear()
+            effective_heroes.append(hero_dict)
+        elif hero_dict['criminals_count'] == max_count:
+            effective_heroes.append(hero_dict)
+    return effective_heroes
+
+
+def main():
+    superheroes = get_superheroes_list_from_file()
+    most_effective = find_most_effective_superhero(superheroes)
+
+    print(dumps(most_effective, indent=4, ensure_ascii=False))
+    #  print(dumps(superheroes, indent=4, ensure_ascii=False))
+
+
+main()
