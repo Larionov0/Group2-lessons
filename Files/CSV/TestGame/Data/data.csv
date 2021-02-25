@@ -1,0 +1,4 @@
+username, password, coins, level, places, units
+username, password, 10, 2, 2, soldier:10; turret:4; tank:2
+username2, password2, 124, 5, 4, soldier:1000; turret:1; tank:6
+Superbob, superbob, 10, 1, 1, soldier:5; turret:1; tank:0
