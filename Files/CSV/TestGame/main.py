@@ -60,7 +60,66 @@ def save_data(data):
 
 
 def load_data():
-    pass
+    data = []
+    with open(SAVINGS_FILENAME, 'rt', encoding='utf-8') as file:
+        file.readline()
+        for line in file:
+            row = line.rstrip().split(', ')
+            units = {}
+            for string in row[5].split('; '):
+                name, amount = string.split(':')
+                units[name] = int(amount)
+
+            user = {
+                'username': row[0],
+                'password': row[1],
+                'coins': int(row[2]),
+                'level': int(row[3]),
+                'places': int(row[4]),
+                'units': units
+            }
+            data.append(user)
+    return data
+
+
+def create_init_data():
+    return [
+        {
+            'username': 'username',
+            'password': 'password',
+            'coins': 10,
+            'level': 2,
+            'places': 2,
+            'units': {
+                'soldier': 10,
+                'turret': 4,
+                'tank': 2
+            }
+        },
+        {
+            'username': 'username2',
+            'password': 'password2',
+            'coins': 124,
+            'level': 5,
+            'places': 4,
+            'units': {
+                'soldier': 1000,
+                'turret': 1,
+                'tank': 6
+            }
+        },
+    ]
+
+
+def try_to_load_data():
+    try:
+        return load_data()
+    except Exception as ex:
+        print('Сталася помилка з файлом збереження:')
+        print(ex)
+        print('Створюємо нові дані')
+        input('<Enter>')
+        return create_init_data()
 
 
 def register_menu(data):
@@ -171,7 +230,9 @@ def game_main_menu(data, user):
                 '3 - вийти з аккаунту'
         print(text)
         choice = input('Ваш вибір: ')
-        if choice == '3':
+        if choice == '2':
+            user['units']['soldier'] += 10
+        elif choice == '3':
             return
 
 
@@ -196,33 +257,7 @@ def main_menu(data):
 
 
 def main():
-    # data = [
-    #     {
-    #         'username': 'username',
-    #         'password': 'password',
-    #         'coins': 10,
-    #         'level': 2,
-    #         'places': 2,
-    #         'units': {
-    #             'soldier': 10,
-    #             'turret': 4,
-    #             'tank': 2
-    #         }
-    #     },
-    #     {
-    #         'username': 'username2',
-    #         'password': 'password2',
-    #         'coins': 124,
-    #         'level': 5,
-    #         'places': 4,
-    #         'units': {
-    #             'soldier': 1000,
-    #             'turret': 1,
-    #             'tank': 6
-    #         }
-    #     },
-    # ]
-    data = load_data()
+    data = try_to_load_data()
     main_menu(data)
 
 

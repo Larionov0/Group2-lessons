@@ -1,0 +1,10 @@
+{
+  "Bob": {
+    "age": 21,
+    "hobbies": ["lol", "kek"]
+  },
+  "Boba": {
+    "age": 21,
+    "hobbies": ["lol", "kek"]
+  }
+}
