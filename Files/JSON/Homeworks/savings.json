@@ -1,0 +1,16 @@
+[
+    {
+        "number": 1,
+        "width": 213,
+        "length": 123,
+        "price": 123,
+        "canHold": 123,
+        "held": 123,
+        "items": {
+            "wardrobe": 12,
+            "tv": 2,
+            "table": 4,
+            "chair": 2
+        }
+    }
+]
