@@ -2,18 +2,12 @@ import random
 from os import system
 import colorama
 
-colorama.init()
-
-N = 30
-M = 40
+N = 20
+M = 30
 
 
 def clear():
     system('cls')
-
-
-def distance(point1, point2):
-    return ((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2) ** 0.5
 
 
 class GameObject:
@@ -23,9 +17,6 @@ class GameObject:
         self.i = i
         self.j = j
         self.is_solid = is_solid
-
-    def distance(self, other):
-        return distance([self.i, self.j], [other.i, other.j])
 
     def draw(self, matrix):
         matrix[self.i][self.j] = self.sprite
@@ -38,13 +29,6 @@ class Creature(GameObject):
         self.hp = self.max_hp = hp
         self.world = world
         self.armor = armor
-
-    def get_all_creatures_in_radius(self, radius):
-        creatures_in_radius = []
-        for creature in self.world.get_alive_creatures():
-            if self.distance(creature) <= radius and self is not creature:
-                creatures_in_radius.append(creature)
-        return creatures_in_radius
 
     def get_damage(self, damage):
         rem_damage = damage - self.armor
@@ -99,37 +83,6 @@ class Animal(Creature):
         self.satiety = self.max_satiety = satiety
         self.water = self.max_water = water
 
-    def get_grassies(self):
-        result_list = []
-        for creature in self.world.get_alive_creatures():
-            if isinstance(creature, Grassy):
-                if creature.i == self.i and creature.j == self.j:
-                    result_list.append(creature)
-        return result_list
-
-    def move_to_point(self, target_point):
-        points = {
-            'w': [self.i - 1, self.j],
-            's': [self.i + 1, self.j],
-            'a': [self.i, self.j - 1],
-            'd': [self.i, self.j + 1]
-        }
-
-        cur_min = float('inf')
-        min_dir = None
-        for direction, point in points.items():
-            d = distance(point, target_point)
-            if d < cur_min:
-                cur_min = d
-                min_dir = direction
-
-        self.move(min_dir)
-
-    def restore_satiety(self, satiety):
-        self.satiety += satiety
-        if self.satiety > self.max_satiety:
-            self.satiety = self.max_satiety
-
     def loose_satiety(self, satiety):
         self.satiety -= satiety
         if self.satiety <= 0:
@@ -139,7 +92,7 @@ class Animal(Creature):
         part = self.satiety / self.max_satiety * 100  # відсотки
 
         if part >= 70:
-            return colorama.Fore.BLUE
+            return colorama.Fore.GREEN
         elif part >= 40:
             return colorama.Fore.YELLOW
         else:
@@ -147,16 +100,6 @@ class Animal(Creature):
 
     def draw(self, matrix):
         matrix[self.i][self.j] = self.get_satiety_color() + self.sprite + colorama.Fore.RESET
-
-    @classmethod
-    def spawn_in_position(cls, world):
-        raise NotImplementedError
-
-    @classmethod
-    def spawn(cls, world):
-        i = random.randint(0, N - 1)
-        j = random.randint(0, M - 1)
-        cls.spawn_in_position(world, i, j)
 
     def __str__(self):
         return f"Creature {self.sprite} {self.name} ([{self.i}, {self.j}])"
@@ -190,8 +133,8 @@ class Grassy(Plant):
     @classmethod
     def check_spawn(cls, world, round_):
         if round_ % 1 == 0:
-            for _ in range(3):
-                cls.spawn(world)
+            cls.spawn(world)
+            cls.spawn(world)
 
 
 class Chicken(Animal):
@@ -200,6 +143,14 @@ class Chicken(Animal):
 
     def __init__(self, name, i, j, hp, satiety, water, world, armor=0):
         super().__init__(name, i, j, hp, satiety, water, world, armor)
+
+    def get_grassies(self):
+        result_list = []
+        for creature in self.world.get_alive_creatures():
+            if isinstance(creature, Grassy):
+                if creature.i == self.i and creature.j == self.j:
+                    result_list.append(creature)
+        return result_list
 
     def make_move(self):
         direction = random.choice(['w', 'a', 's', 'd'])
@@ -228,46 +179,47 @@ class Chicken(Animal):
         )
         world.creatures.append(new_chicken)
 
+    @classmethod
+    def spawn(cls, world):
+        i = random.randint(0, N - 1)
+        j = random.randint(0, M - 1)
+        cls.spawn_in_position(world, i, j)
 
-class BlueRabbit(Animal):
-    sprite = 'r'
-    radius = 3
-    names = ['Pupsen', 'Vupsen']
+
+class SmartChicken(Chicken):
+    sprite = 'S'
+
+    def __init__(self, name, i, j, hp, satiety, water, world, armor=0):
+        super().__init__(name, i, j, hp, satiety, water, world, armor)
 
     def make_move(self):
-        cur_min = float('inf')
-        nearest_grassy = None
-        for creature in self.get_all_creatures_in_radius(self.radius):
-            if isinstance(creature, Grassy):
-                d = self.distance(creature)
-                if d < cur_min:
-                    cur_min = d
-                    nearest_grassy = creature
+        for el in self.world.creatures:
+            if isinstance(el, Grassy):
+                vectorX = el.i - self.i
+                vectorY = el.j - self.j
+                if vectorX == 0 and vectorY > 0:
+                    direction = 's'
+                elif vectorX == 0 and vectorY < 0:
+                    direction = 'w'
+                elif vectorX > 0 and vectorY == 0:
+                    direction = 'd'
+                elif vectorX < 0 and vectorY == 0:
+                    direction = 'a'
+                else:
+                    direction = random.choice(['w', 'a', 's', 'd'])
+                break
 
-        if nearest_grassy:
-            self.move_to_point([nearest_grassy.i, nearest_grassy.j])
-        else:
-            self.move(random.choice(['w', 'a', 's', 'd']))
+        self.move(direction)
 
         grassies = self.get_grassies()
         if grassies:
             grassies[0].die()
-            self.restore_satiety(grassies[0].satiety * 3 + 2)
+            self.satiety = self.max_satiety
+            SmartChicken.spawn_in_position(self.world, self.i, self.j)
+            SmartChicken.spawn_in_position(self.world, self.i, self.j)
+            Chicken.spawn_in_position(self.world, self.i, self.j)
 
         self.loose_satiety(1)
-
-    @classmethod
-    def spawn_in_position(cls, world, i, j):
-        new_rabbit = cls(
-            name=random.choice(cls.names),
-            i=i,
-            j=j,
-            hp=5,
-            satiety=random.randint(5, 9) + random.randint(5, 9) + random.randint(5, 9),
-            water=0,  #
-            world=world
-        )
-        world.creatures.append(new_rabbit)
 
 
 def create_matrix():
@@ -288,11 +240,9 @@ class World:
     def __init__(self):
         self.creatures = []
         self.objects = []
-        # for _ in range(10):
-        #     Chicken.spawn(self)
-        for _ in range(20):
-            BlueRabbit.spawn(self)
-        for _ in range(60):
+        for _ in range(3):
+            SmartChicken.spawn(self)
+        for _ in range(15):
             Grassy.spawn(self)
 
     def get_alive_creatures(self):
@@ -326,3 +276,4 @@ class World:
 
 w = World()
 w.run()
+
