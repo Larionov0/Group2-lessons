@@ -2,6 +2,7 @@ from .GameObjects.Animals.blue_rabbit import BlueRabbit
 from .GameObjects.Animals.chicken import Chicken
 from .GameObjects.Plants.grassy import Grassy
 from .functions import *
+from .GameObjects.Animals.new_animal import NewAnimal
 
 
 class World:
@@ -14,6 +15,9 @@ class World:
             BlueRabbit.spawn(self)
         for _ in range(60):
             Grassy.spawn(self)
+        for _ in range(10):
+            NewAnimal.spawn(self)
+
 
     def get_alive_creatures(self):
         return list(filter(lambda creature: creature.is_alive is True, self.creatures))
